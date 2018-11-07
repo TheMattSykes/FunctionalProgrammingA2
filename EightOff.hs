@@ -1,6 +1,10 @@
 module EightOff where
   
+  import MergeSort
   import System.Random
+  import Data.List
+  
+  {- 1. Haskell Datatypes -}
   
   data Suit = Clubs | Diamonds | Hearts | Spades deriving (Show, Enum, Eq, Ord)
   
@@ -12,20 +16,18 @@ module EightOff where
   
   type EOBoard = [(Foundations,Columns,Reserve)]
   
-  type Foundations = (Deck,Deck,Deck,Deck)
-  -- foundations = []
+  -- Sequence builder from Ace
+  type Foundations = [[Card]]
   
-  type Columns = (Deck,Deck,Deck,Deck,Deck)
-  -- columns = []
+  -- Other cards
+  type Columns = [[Card]] -- !!!!! Change type later
   
-  type Reserve = (Card,Card,Card,Card,Card,Card,Card,Card)
-  -- reserve = []
-  
-  
+  -- Hold one card
+  type Reserve = [Card]
   
   
   
-  -- type EOBoard = []
+  {- 2. Haskell constants and utilities -}
   
   pack :: Deck
   -- List comprehention: combindes the pips and suits into unique pairs to form a deck of 52 cards.
@@ -43,3 +45,32 @@ module EightOff where
   
   isKing :: Card -> Bool
   isKing (a,_) = a == King
+  
+  
+  
+  {- 3. Shuffle Function -}
+  
+  randomList = take 56 (randoms (mkStdGen 64) :: [Int])
+  zippedList = zip pack randomList
+  sortedList = mergesort (\(_,n1) (_,n2)->n1<n2) zippedList
+  
+  shuffle = map fst sortedList
+  
+  
+  
+  {- 4. eODeal -}
+  
+  eOBoard :: EOBoard
+  eOBoard = [([],col,res)]
+  
+  res :: Reserve
+  res = take 4 shuffle
+  
+  col :: Columns
+  col = columnGenerator (drop 4 shuffle)
+  
+  columnGenerator :: Eq a => [a] -> [[a]]
+  columnGenerator [] = []
+  columnGenerator xs = (take 6 xs):(columnGenerator (drop 6 xs))
+  
+  

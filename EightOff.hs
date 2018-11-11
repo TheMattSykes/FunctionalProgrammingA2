@@ -14,7 +14,7 @@ module EightOff where
   
   type Deck = [Card] -- List of all the cards
   
-  type EOBoard = [(Foundations,Columns,Reserve)]
+  type EOBoard = (Foundations,Columns,Reserve)
   
   -- Sequence builder from Ace
   type Foundations = [[Card]]
@@ -61,7 +61,7 @@ module EightOff where
   {- 4. eODeal -}
   
   eOBoard :: EOBoard
-  eOBoard = [([],col,res)]
+  eOBoard = ([],col,res)
   
   res :: Reserve
   res = take 4 shuffle
@@ -73,4 +73,10 @@ module EightOff where
   columnGenerator [] = []
   columnGenerator xs = (take 6 xs):(columnGenerator (drop 6 xs))
   
+  
+  
+  {- 5. toFoundations -}
+  
+  toFoundations :: EOBoard -> EOBoard
+  toFoundations board = eOBoard
   

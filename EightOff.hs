@@ -78,5 +78,17 @@ module EightOff where
   {- 5. toFoundations -}
   
   toFoundations :: EOBoard -> EOBoard
-  toFoundations board = eOBoard
+  toFoundations (f,c,r) = eOBoard
+  
+  
+  filterColumn :: [Card] -> [Card] -> [Card]
+  filterColumn list found = filter (\ x -> pCard x == (last found)) list
+  
+  addColumn :: [Card] -> [Card] -> [Card]
+  addColumn (x:xs) found
+    | length xs == 0 = if (pCard x /= (last found)) then [] else [x]
+    | null found = if p == Ace then (x):(addColumn xs [x]) else []
+    | pCard x == (last found) = if length xs >= 0 then (x):(addColumn xs [x]) else [x]
+    | otherwise = addColumn xs found
+    where (p,s) = x
   

@@ -12,17 +12,17 @@ module EightOff where
   
   type Card = (Pip,Suit)
   
-  type Deck = [Card] -- List of all the cards
+  type Deck = [Card] -- List of cards
   
   type EOBoard = (Foundations,Columns,Reserve)
   
-  -- Sequence builder from Ace
+  -- Foundations contain 4 decks of cards starting with Ace and ending with King. Must be same suit in each foudnation.
   type Foundations = [Deck]
   
-  -- Other cards
-  type Columns = [Deck] -- !!!!! Change type later
+  -- 8 Columns which are decks of cards
+  type Columns = [Deck]
   
-  -- Hold one card
+  -- 8 Reserves which can contain a card each or be null
   type Reserve = [Card]
   
   
@@ -33,6 +33,7 @@ module EightOff where
   -- List comprehention: combindes the pips and suits into unique pairs to form a deck of 52 cards.
   pack = [(pip,suit) | pip <- [Ace ..], suit <- [Clubs ..]]
   
+  -- Increases the Pip value of the entered card
   sCard :: Card -> Card
   sCard (a,b) = (succ a,b)
   
@@ -50,7 +51,7 @@ module EightOff where
   
   {- 3. Shuffle Function -}
   
-  randomList = take 56 (randoms (mkStdGen 64) :: [Int])
+  randomList = take 56 (randoms (mkStdGen 20) :: [Int])
   zippedList = zip pack randomList
   sortedList = mergesort (\(_,n1) (_,n2)->n1<n2) zippedList
   
@@ -78,9 +79,21 @@ module EightOff where
   {- 5. toFoundations -}
   
   toFoundations :: EOBoard -> EOBoard
-  -- toFoundations ([],c,r) = ([[head (c !! index)]],(updateColumns c card),r) where (index,card) = scanForAces c
-  toFoundations (f,c,r) = eOBoard
-
+  toFoundations ([],c,r) = ([[card]], updateColumns c card, updateReserve r card) where card = scanForAces (c `union` [r])
+  toFoundations (f,c,r)
+    | null cardB = (updateFoundations f cardA, updateColumns c cardA, updateReserve r cardA)
+    | otherwise = (updateFoundations f cardB, updateColumns c cardB, updateReserve r cardB)
+    where cardA = scanForAces (c `union` [r])
+          cardB = scanForAces (c `union` [r])
+  
+  updateFoundations :: Foundations -> Card -> Foundations
+  updateFoundations [] c = if p == Ace then [[c]] else [] where (p,s) = c
+  updateFoundations (x:xs) c
+    | p == Ace && x == [] = [c]:xs
+    | c == sCard (last x) = (x ++ [c]):xs
+    | otherwise = x:(updateFoundations xs c)
+    where (p,s) = c
+  
   updateColumns :: Columns -> Card -> Columns
   updateColumns [] c = []
   updateColumns (x:xs) c = (delete c x):(updateColumns xs c)
@@ -93,16 +106,3 @@ module EightOff where
   
   scanForAces :: [Deck] -> Card
   scanForAces list = head (list !! (head (elemIndices Ace (map fst (map head list)))))
-  
-  
-  {- filterColumn :: [Card] -> [Card] -> [Card]
-  filterColumn list found = filter (\ x -> pCard x == (last found)) list
-  
-  addColumn :: [Card] -> [Card] -> [Card]
-  addColumn [] _ = []
-  addColumn (x:xs) found
-    | null found = if p == Ace then (x):(addColumn xs [x]) else []
-    | pCard x == (last found) = (x):(addColumn xs [x])
-    | otherwise = addColumn xs found
-    where (p,s) = x -}
-  

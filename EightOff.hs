@@ -17,10 +17,10 @@ module EightOff where
   type EOBoard = (Foundations,Columns,Reserve)
   
   -- Sequence builder from Ace
-  type Foundations = [[Card]]
+  type Foundations = [Deck]
   
   -- Other cards
-  type Columns = [[Card]] -- !!!!! Change type later
+  type Columns = [Deck] -- !!!!! Change type later
   
   -- Hold one card
   type Reserve = [Card]
@@ -78,17 +78,31 @@ module EightOff where
   {- 5. toFoundations -}
   
   toFoundations :: EOBoard -> EOBoard
+  -- toFoundations ([],c,r) = ([[head (c !! index)]],(updateColumns c card),r) where (index,card) = scanForAces c
   toFoundations (f,c,r) = eOBoard
+
+  updateColumns :: Columns -> Card -> Columns
+  updateColumns [] c = []
+  updateColumns (x:xs) c = (delete c x):(updateColumns xs c)
+  
+  updateReserve :: Reserve -> Card -> Reserve
+  updateReserve res c = delete c res
+  
+  scanForCards :: [Deck] -> Card -> Deck
+  scanForCards list found = filter (== (sCard found)) (map head list)
+  
+  scanForAces :: [Deck] -> Card
+  scanForAces list = head (list !! (head (elemIndices Ace (map fst (map head list)))))
   
   
-  filterColumn :: [Card] -> [Card] -> [Card]
+  {- filterColumn :: [Card] -> [Card] -> [Card]
   filterColumn list found = filter (\ x -> pCard x == (last found)) list
   
   addColumn :: [Card] -> [Card] -> [Card]
+  addColumn [] _ = []
   addColumn (x:xs) found
-    | length xs == 0 = if (pCard x /= (last found)) then [] else [x]
     | null found = if p == Ace then (x):(addColumn xs [x]) else []
-    | pCard x == (last found) = if length xs >= 0 then (x):(addColumn xs [x]) else [x]
+    | pCard x == (last found) = (x):(addColumn xs [x])
     | otherwise = addColumn xs found
-    where (p,s) = x
+    where (p,s) = x -}
   

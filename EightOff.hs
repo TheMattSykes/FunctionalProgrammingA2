@@ -62,7 +62,7 @@ module EightOff where
   {- 4. eODeal -}
   
   eOBoard :: EOBoard
-  eOBoard = ([],col,res)
+  eOBoard = ([[(Ace,Spades)]],col,res)
   
   res :: Reserve
   res = take 4 shuffle
@@ -79,12 +79,20 @@ module EightOff where
   {- 5. toFoundations -}
   
   toFoundations :: EOBoard -> EOBoard
-  toFoundations ([],c,r) = ([[card]], updateColumns c card, updateReserve r card) where card = scanForAces (c `union` [r])
+  -- toFoundations ([],c,r) = ([[card]], updateColumns c card, updateReserve r card) 
+    -- where card = scanForAces (c `union` reservesToElements r)
   toFoundations (f,c,r)
-    | null cardB = (updateFoundations f cardA, updateColumns c cardA, updateReserve r cardA)
-    | otherwise = (updateFoundations f cardB, updateColumns c cardB, updateReserve r cardB)
-    where cardA = scanForAces (c `union` [r])
-          cardB = scanForAces (c `union` [r])
+    | null cardA && null cardB = (f,c,r)
+    | null cardB = toFoundations (updateFoundations f cardA, updateColumns c cardA, updateReserve r cardA)
+    | otherwise = toFoundations (updateFoundations f cardB, updateColumns c cardB, updateReserve r cardB)
+    where cardA = scanForAces (c `union` res)
+          cardB = if null cardBl then [] else (head cardBl)
+          cardBl = scanForCards (c `union` res) f
+          res = reservesToElements r
+  
+  reservesToElements :: Eq a => [a] -> [[a]]
+  reservesToElements [] = []
+  reservesToElements (x:xs) = [x]:(reservesToElements xs)
   
   updateFoundations :: Foundations -> Card -> Foundations
   updateFoundations [] c = if p == Ace then [[c]] else [] where (p,s) = c
@@ -101,8 +109,13 @@ module EightOff where
   updateReserve :: Reserve -> Card -> Reserve
   updateReserve res c = delete c res
   
-  scanForCards :: [Deck] -> Card -> Deck
-  scanForCards list found = filter (== (sCard found)) (map head list)
+  scanForCards :: [Deck] -> Foundations -> [Card]
+  scanForCards list [] = []
+  scanForCards list (x:xs)
+    | null filtered = scanForCards list xs
+    | otherwise = [head filtered]
+    where filtered = (filter (== (sCard (last x))) (map head list))
   
   scanForAces :: [Deck] -> Card
   scanForAces list = head (list !! (head (elemIndices Ace (map fst (map head list)))))
+  
